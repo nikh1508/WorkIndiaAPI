@@ -3,6 +3,7 @@ from flask import Flask, request, Response, jsonify
 import logging
 import database as db
 import hashlib
+import encryption as enc
 
 logging.basicConfig(filename='server.log', format='[%(levelname)-7s] : %(asctime)s : %(name)-8s : %(message)s',
                     level=logging.DEBUG, datefmt='%b %d, %g | %H:%M:%S')
@@ -48,19 +49,21 @@ def fetchAllWebsites():
     websites = []
     for _r in res:
         websites.append(
-            {'website': _r[0], 'username': _r[1], 'password': _r[2]})
+            {'website': enc.decrypt_string(_r[0]), 'username': enc.decrypt_string(_r[1]), 'password': enc.decrypt_string(_r[2])})
     return jsonify(websites)
 
 
 @app.route('/app/sites', methods=['POST'])
 def addCredential():
     content = request.json
+    for key in content:
+        content[key] = enc.encrypt_string(content[key])
     userID = request.args.get('user')
-    print(userID, userID is not None, all(keys in content for keys in (
-        'website', 'username', 'password')) and len(content) == 3, db.userExists(int(userID)))
+    # print(userID, userID is not None, all(keys in content for keys in (
+        # 'website', 'username', 'password')) and len(content) == 3, db.userExists(int(userID)))
     if userID is not None and all(keys in content for keys in ('website', 'username', 'password')) and len(content) == 3 and db.userExists(userID):
         content['userID'] = userID
-        print(content)
+        # print(content)
         if db.addWebsitePass(content):
             return jsonify({'status': 'success'})
     return Response(status=400)
