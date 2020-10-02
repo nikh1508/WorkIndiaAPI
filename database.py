@@ -1,6 +1,7 @@
 import mysql.connector
 import logging
 import sys
+import hashlib
 
 logging.basicConfig(filename='server.log', format='[%(levelname)-7s] : %(asctime)s : %(name)-8s : %(message)s',
                     level=logging.DEBUG, datefmt='%b %d, %g | %H:%M:%S')
@@ -45,7 +46,7 @@ def createUser(user):
 
 
 def validatePass(db_row, password):
-    return db_row[2] == password
+    return db_row[2] == hashlib.md5(password.encode()).hexdigest()
 
 
 def userExists(userID):

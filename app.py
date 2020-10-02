@@ -2,6 +2,7 @@ from flask_cors import CORS
 from flask import Flask, request, Response, jsonify
 import logging
 import database as db
+import hashlib
 
 logging.basicConfig(filename='server.log', format='[%(levelname)-7s] : %(asctime)s : %(name)-8s : %(message)s',
                     level=logging.DEBUG, datefmt='%b %d, %g | %H:%M:%S')
@@ -22,6 +23,8 @@ def addUser():
     content = request.json
     # print(content)
     if all(keys in content for keys in ('username', 'password')) and len(content) == 2:
+        _p = hashlib.md5(content['password'].encode())
+        content['password'] = _p.hexdigest()
         if db.createUser(content):
             return jsonify({'status': 'account created'})
     # jsonify({'status': 'unable to create account'}),
